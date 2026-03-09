@@ -6,10 +6,10 @@ import Toybox.WatchUi;
 // MainView — View layer for the main counter screen
 //
 // Layout top → bottom:
-//   y=5   progress text  "current / goal"
-//   y=35  horizontal progress bar (8 px tall)
-//   y=½h  counter (FONT_NUMBER_HOT, full-centre)
-//   y=h-25 icons: [R]eset (left)   [S]ettings (right)
+//   y=5    progress text  "current / goal"
+//   y=35   horizontal progress bar (8 px tall)
+//   y=½h   counter (FONT_NUMBER_HOT, full-centre)
+//   y=h-25 icons: reset (left)   settings (right)
 // ============================================================
 class MainView extends WatchUi.View {
 
@@ -17,9 +17,7 @@ class MainView extends WatchUi.View {
         View.initialize();
     }
 
-    public function onLayout(dc as Dc) as Void {
-        // Manual drawing only — no XML layout
-    }
+    public function onLayout(dc as Dc) as Void {}
 
     public function onShow() as Void {
         WatchUi.requestUpdate();
@@ -32,7 +30,6 @@ class MainView extends WatchUi.View {
         var count = GoalManager.getCount();
         var goal  = GoalManager.getGoal();
 
-        // ── Black background ──────────────────────────────────
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
 
@@ -54,7 +51,6 @@ class MainView extends WatchUi.View {
     }
 
     // Horizontal progress bar  x=20, y=35, height=8
-    //   background: dark gray   fill: dark-blue → green on completion
     private function drawProgressBar(dc as Dc, count as Number,
                                       goal as Number, w as Number) as Void {
         var barX    = 20;
@@ -62,11 +58,9 @@ class MainView extends WatchUi.View {
         var barH    = 8;
         var barMaxW = w - 40;
 
-        // Background track
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.fillRectangle(barX, barY, barMaxW, barH);
 
-        // Filled portion
         var barW = 0;
         if (goal > 0) {
             barW = (count.toFloat() / goal.toFloat() * barMaxW.toFloat()).toNumber();
@@ -83,7 +77,7 @@ class MainView extends WatchUi.View {
         }
     }
 
-    // Giant counter centred vertically on the screen
+    // Giant counter centred on screen
     private function drawCounter(dc as Dc, count as Number,
                                   w as Number, h as Number) as Void {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
@@ -92,25 +86,64 @@ class MainView extends WatchUi.View {
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // Circled "R" (lower-left) and "S" (lower-right)
-    // Touch detection in MainDelegate uses the same centres.
+    // ─────────────────────────────────────────────────────────
+    // drawBottomIcons
+    //   Reset    icon — lower-left,  x=30,   y=h-25
+    //   Settings icon — lower-right, x=w-30, y=h-25
+    //
+    // Touch zones in MainDelegate use the same centre coords.
+    // ─────────────────────────────────────────────────────────
     private function drawBottomIcons(dc as Dc, w as Number, h as Number) as Void {
         var iconY = h - 25;
-        var r     = 12;
+        var bgR   = 15;
 
-        // Reset — left
+        // ── Shared background circles ──────────────────────────
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.fillCircle(30, iconY, r);
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(30, iconY, Graphics.FONT_TINY, "R",
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.fillCircle(30, iconY, bgR);
+        dc.fillCircle(w - 30, iconY, bgR);
 
-        // Settings — right
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.fillCircle(w - 30, iconY, r);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w - 30, iconY, Graphics.FONT_TINY, "S",
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+
+        // ── Reset icon: circular arrow ─────────────────────────
+        // Arc ~300°, gap at top-right; arrowhead closes the gap
+        var arcR = 7;
+        var cx   = 30;
+        // Arc from 70° to 330° counter-clockwise leaves gap at ~350–70° (top-right)
+        dc.drawArc(cx, iconY, arcR, Graphics.ARC_COUNTER_CLOCKWISE, 70, 330);
+
+        // Arrowhead at 70°: point = cx + arcR*cos70, cy - arcR*sin70
+        // cos70≈0.342 → +2, sin70≈0.940 → -7  (screen: y down)
+        var ax = cx + 2;
+        var ay = iconY - 7;
+        // Two short lines forming the arrow tip
+        dc.drawLine(ax, ay, ax - 4, ay - 1);
+        dc.drawLine(ax, ay, ax - 1, ay + 4);
+
+        // ── Settings icon: gear ────────────────────────────────
+        // Centre hub + outer ring + 6 teeth (every 60°)
+        // Pre-computed cos/sin * gearR for 0,60,120,180,240,300° (×10 → /10)
+        // cos: 10, 5,-5,-10,-5, 5   sin: 0, 9, 9, 0,-9,-9  (×10, rounded)
+        var gx        = w - 30;
+        var innerR    = 3;
+        var outerR    = 8;
+        var teethOutR = 11;
+
+        dc.fillCircle(gx, iconY, innerR);
+        dc.drawCircle(gx, iconY, outerR);
+
+        // cosX10 and sinX10 for angles 0,60,120,180,240,300 degrees
+        var cosX10 = [10,  5, -5, -10, -5,  5];
+        var sinX10 = [ 0,  9,  9,   0, -9, -9];
+
+        for (var i = 0; i < 6; i++) {
+            // Inner tooth root on the outer ring
+            var x1 = gx + (cosX10[i] * outerR  / 10);
+            var y1 = iconY + (sinX10[i] * outerR  / 10);
+            // Outer tooth tip
+            var x2 = gx + (cosX10[i] * teethOutR / 10);
+            var y2 = iconY + (sinX10[i] * teethOutR / 10);
+            dc.drawLine(x1, y1, x2, y2);
+        }
     }
 
 }
