@@ -3,43 +3,46 @@ import Toybox.Lang;
 import Toybox.Position;
 import Toybox.Sensor;
 import Toybox.Time;
+import Toybox.Timer;
 import Toybox.System;
 import Toybox.WatchUi;
 
 // ============================================================
 // TasbihApp — main application entry point
-// "entry" in manifest.xml must match this class name exactly
 // ============================================================
 class TasbihApp extends Application.AppBase {
+
+    private var _sensorTimer as Timer.Timer?;
 
     public function initialize() {
         AppBase.initialize();
     }
 
-    // Called when the app is launched
     public function onStart(state as Dictionary?) as Void {
         checkDailyReset();
 
-        // GPS → bearing до Каабы
+        // GPS → координаты для расчёта bearing до Каабы
         Position.enableLocationEvents(
             Position.LOCATION_CONTINUOUS,
             method(:onPosition)
         );
 
-        // Компас → heading
-        Sensor.enableSensorEvents(method(:onSensor));
+        // Компас — опрашиваем каждые 500 мс напрямую через Sensor.getInfo()
+        _sensorTimer = new Timer.Timer();
+        _sensorTimer.start(method(:onSensorTimer), 100, true);
 
         System.println("TasbihApp: started");
     }
 
-    // Called when the app is closing
     public function onStop(state as Dictionary?) as Void {
         Position.enableLocationEvents(Position.LOCATION_DISABLE, null);
-        Sensor.enableSensorEvents(null);
+        if (_sensorTimer != null) {
+            (_sensorTimer as Timer.Timer).stop();
+            _sensorTimer = null;
+        }
         System.println("TasbihApp: stopped");
     }
 
-    // Return the root view + delegate pair
     public function getInitialView() as [Views] or [Views, InputDelegates] {
         var view     = new $.MainView();
         var delegate = new $.MainDelegate(view);
@@ -47,32 +50,44 @@ class TasbihApp extends Application.AppBase {
     }
 
     // ---- GPS callback ---------------------------------------
-    // Обновляем координаты только при хорошем качестве сигнала
 
     public function onPosition(info as Position.Info) as Void {
-        if (info.accuracy >= Position.QUALITY_GOOD) {
+        var acc = info.accuracy;
+        if (acc >= Position.QUALITY_LAST_KNOWN) {
             var coords = info.position.toRadians();
-            QiblaManager.updateLocation(coords[0] as Double, coords[1] as Double);
+            QiblaManager.updateLocation(coords[0] as Double, coords[1] as Double, acc);
         } else {
-            QiblaManager.clearLocation();
+            QiblaManager.clearLocation(acc);
         }
         WatchUi.requestUpdate();
     }
 
-    // ---- Sensor callback ------------------------------------
-    // Обновляем heading компаса
+    // ---- Sensor timer ---------------------------------------
+    // Каждые 500мс: читаем heading и пробуем получить GPS
 
-    public function onSensor(sensorInfo as Sensor.Info) as Void {
-        var heading = sensorInfo.heading;
-        if (heading != null) {
-            QiblaManager.updateHeading(heading as Float);
-            WatchUi.requestUpdate();
+    public function onSensorTimer() as Void {
+        // Компас
+        var sInfo = Sensor.getInfo();
+        if (sInfo.heading != null) {
+            QiblaManager.updateHeading(sInfo.heading as Float);
         }
+
+        // GPS — читаем последнюю известную позицию
+        var pInfo = Position.getInfo();
+        if (pInfo != null) {
+            var acc = pInfo.accuracy;
+            QiblaManager._gpsAccuracy = acc;
+            if (acc >= Position.QUALITY_LAST_KNOWN) {
+                var coords = pInfo.position.toRadians();
+                QiblaManager.updateLocation(coords[0] as Double, coords[1] as Double, acc);
+            } else {
+                QiblaManager.clearLocation(acc);
+            }
+        }
+
+        WatchUi.requestUpdate();
     }
 
-    // ----------------------------------------------------------
-    // checkDailyReset — auto-reset counter at midnight.
-    // Also initialises Storage keys on very first launch.
     // ----------------------------------------------------------
     private function checkDailyReset() as Void {
         var today     = Time.today().value();
@@ -86,7 +101,6 @@ class TasbihApp extends Application.AppBase {
             System.println("TasbihApp: daily auto-reset for " + today.toString());
         }
 
-        // First-run defaults
         if (Application.Storage.getValue("dailyGoal") == null) {
             Application.Storage.setValue("dailyGoal", 33);
         }

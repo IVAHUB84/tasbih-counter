@@ -1,18 +1,11 @@
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Math;
+import Toybox.System;
 import Toybox.WatchUi;
 
 // ============================================================
 // MainView — View layer for the main counter screen
-//
-// Layout:
-//   y=5        progress text  "current / goal"
-//   y=35       horizontal progress bar (8 px tall)
-//   y=½h       counter (FONT_NUMBER_HOT, full-centre)
-//   bottom     total count
-//   edge       Qibla icon (moves along circle edge)
-//   left~y=½h  "Reset" hint opposite UP button
 // ============================================================
 class MainView extends WatchUi.View {
 
@@ -41,7 +34,8 @@ class MainView extends WatchUi.View {
         drawProgressBar(dc, count, goal, w);
         drawCounter(dc, count, w, h);
         drawTotal(dc, total, w, h);
-        drawQiblaIcon(dc, w, h);
+        drawQiblaArrow(dc, w, h);
+        drawQiblaInfo(dc, w, h);
         drawButtonHints(dc, w, h);
     }
 
@@ -56,7 +50,7 @@ class MainView extends WatchUi.View {
                     Graphics.TEXT_JUSTIFY_CENTER);
     }
 
-    // Horizontal progress bar  x=20, y=35, height=8
+    // Horizontal progress bar
     private function drawProgressBar(dc as Dc, count as Number,
                                       goal as Number, w as Number) as Void {
         var barX    = 20;
@@ -83,7 +77,7 @@ class MainView extends WatchUi.View {
         }
     }
 
-    // Giant counter centred on screen
+    // Giant counter — сдвинут чуть выше центра чтобы освободить место для total
     private function drawCounter(dc as Dc, count as Number,
                                   w as Number, h as Number) as Void {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
@@ -92,53 +86,102 @@ class MainView extends WatchUi.View {
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // Total accumulated count at bottom centre
+    // Total accumulated count at bottom centre — крупнее
     private function drawTotal(dc as Dc, total as Number,
                                 w as Number, h as Number) as Void {
         if (total <= 0) { return; }
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h - 18, Graphics.FONT_SMALL,
+        dc.drawText(w / 2, h - 24, Graphics.FONT_MEDIUM,
                     total.toString(),
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
     // ----------------------------------------------------------
-    // Qibla icon — движется по краю циферблата
-    // Рисуем программно: чёрный прямоугольник с золотой рамкой
+    // Qibla arrow — красная стрелка, или иконка мечети если лицом к Мекке
     // ----------------------------------------------------------
-    private function drawQiblaIcon(dc as Dc, w as Number, h as Number) as Void {
+    private function drawQiblaArrow(dc as Dc, w as Number, h as Number) as Void {
         var angle = QiblaManager.getScreenAngle();
         if (angle == null) { return; }
 
-        // Радиус окружности (край экрана минус отступ)
-        var r = (w < h ? w : h) / 2 - 12;
+        // ±20° — считаем что лицом к Мекке
+        var a = angle as Float;
+        var aligned = (a <= 20.0f || a >= 340.0f);
 
-        // Центр экрана
+        if (aligned) {
+            drawMeccaIcon(dc, w, h);
+            return;
+        }
+
+        var r   = (w < h ? w : h) / 2 - 10;
+        var cx  = w / 2;
+        var cy  = h / 2;
+        var rad = a * Math.PI.toFloat() / 180.0f;
+
+        var ax = Math.sin(rad).toFloat();
+        var ay = -Math.cos(rad).toFloat();
+        var px = Math.cos(rad).toFloat();
+        var py = Math.sin(rad).toFloat();
+
+        var pts = [
+            [cx + (r * ax).toNumber(),                                    cy + (r * ay).toNumber()],
+            [(cx + ((r-14)*ax + 8*px)).toNumber(),  (cy + ((r-14)*ay + 8*py)).toNumber()],
+            [(cx + ((r-14)*ax + 4*px)).toNumber(),  (cy + ((r-14)*ay + 4*py)).toNumber()],
+            [(cx + ((r-26)*ax + 4*px)).toNumber(),  (cy + ((r-26)*ay + 4*py)).toNumber()],
+            [(cx + ((r-26)*ax - 4*px)).toNumber(),  (cy + ((r-26)*ay - 4*py)).toNumber()],
+            [(cx + ((r-14)*ax - 4*px)).toNumber(),  (cy + ((r-14)*ay - 4*py)).toNumber()],
+            [(cx + ((r-14)*ax - 8*px)).toNumber(),  (cy + ((r-14)*ay - 8*py)).toNumber()]
+        ] as Array<[Number, Number]>;
+
+        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+        dc.fillPolygon(pts);
+    }
+
+    // ----------------------------------------------------------
+    // Иконка мечети — когда лицом к Мекке (±20°)
+    // Позиция: строго по центру между счётчиком и total
+    // ----------------------------------------------------------
+    private function drawMeccaIcon(dc as Dc, w as Number, h as Number) as Void {
         var cx = w / 2;
-        var cy = h / 2;
+        var iy = h * 3 / 4;
 
-        // Угол в радианы (0=верх, по часовой стрелке)
-        var rad = (angle as Float) * Math.PI / 180.0;
-
-        // Позиция центра иконки
-        var ix = cx + (r * Math.sin(rad)).toNumber();
-        var iy = cy - (r * Math.cos(rad)).toNumber();
-
-        // Размер иконки
-        var iw = 14;
-        var ih = 10;
-
-        // Золотая рамка (COLOR_YELLOW)
+        // Левый минарет
         dc.setColor(0xFFAA00, Graphics.COLOR_TRANSPARENT);
-        dc.fillRectangle(ix - iw / 2 - 1, iy - ih / 2 - 1, iw + 2, ih + 2);
+        dc.fillRectangle(cx - 26, iy - 18, 6, 26);
+        dc.fillRectangle(cx - 28, iy - 24, 10, 7);
 
-        // Чёрное тело Каабы
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
-        dc.fillRectangle(ix - iw / 2, iy - ih / 2, iw, ih);
+        // Правый минарет
+        dc.fillRectangle(cx + 20, iy - 18, 6, 26);
+        dc.fillRectangle(cx + 18, iy - 24, 10, 7);
 
-        // Белая полоса (пояс кисва)
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.fillRectangle(ix - iw / 2, iy - 1, iw, 2);
+        // Тело + купол мечети (один полигон)
+        var pts = [
+            [cx - 18, iy + 8],
+            [cx - 18, iy - 8],
+            [cx - 14, iy - 20],
+            [cx,      iy - 30],
+            [cx + 14, iy - 20],
+            [cx + 18, iy - 8],
+            [cx + 18, iy + 8]
+        ] as Array<[Number, Number]>;
+        dc.fillPolygon(pts);
+
+        // Надпись
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, iy + 14, Graphics.FONT_SMALL, "Mecca",
+                    Graphics.TEXT_JUSTIFY_CENTER);
+    }
+
+    // ----------------------------------------------------------
+    // Qibla info — "Kaaba 195° (SW)" по центру на y=50
+    // ----------------------------------------------------------
+    private function drawQiblaInfo(dc as Dc, w as Number, h as Number) as Void {
+        var b = QiblaManager.getBearingDegrees();
+        if (b == null) { return; }
+        var label = QiblaManager.getBearingLabel();
+        var text  = "Kaaba " + (b as Float).format("%.0f") + "\u00B0 (" + label + ")";
+        dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, 50, Graphics.FONT_XTINY, text,
+                    Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // Button hint — "Reset" opposite UP button (left side on Fenix)
