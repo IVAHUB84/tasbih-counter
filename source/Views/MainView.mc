@@ -98,13 +98,12 @@ class MainView extends WatchUi.View {
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // Button hints on left side (UP button area)
+    // Button hint — "Reset" opposite START button (top-right)
     private function drawButtonHints(dc as Dc, w as Number, h as Number) as Void {
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        // UP button is top-left — hint at left side ~y=80
-        dc.drawText(8, h / 2, Graphics.FONT_XTINY,
+        dc.drawText(w - 8, h / 3, Graphics.FONT_XTINY,
                     "Reset",
-                    Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+                    Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
 }

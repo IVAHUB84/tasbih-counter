@@ -18,13 +18,13 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
         BehaviorDelegate.initialize();
     }
 
-    // START / SELECT → increment
+    // START / SELECT → reset dialog
     public function onSelect() as Boolean {
-        incrementCounter();
+        showResetDialog();
         return true;
     }
 
-    // UP → reset dialog
+    // UP → reset dialog (Fenix / watches with UP button)
     public function onPreviousPage() as Boolean {
         showResetDialog();
         return true;
