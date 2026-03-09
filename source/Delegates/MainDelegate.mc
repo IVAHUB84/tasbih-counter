@@ -18,14 +18,21 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
         BehaviorDelegate.initialize();
     }
 
-    // START / SELECT → immediate reset
+    // SELECT / tap screen → increment
     public function onSelect() as Boolean {
-        GoalManager.resetCount();
-        WatchUi.requestUpdate();
+        incrementCounter();
         return true;
     }
 
-    // UP → reset dialog (Fenix / watches with UP button)
+    // Long hold → immediate reset
+    public function onHold(holdEvent as WatchUi.ClickEvent) as Boolean {
+        GoalManager.resetCount();
+        WatchUi.requestUpdate();
+        System.println("Hold reset");
+        return true;
+    }
+
+    // UP → reset (Fenix with UP button)
     public function onPreviousPage() as Boolean {
         showResetDialog();
         return true;
@@ -42,7 +49,7 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
         return false;
     }
 
-    // Touch tap → increment
+    // onTap kept for completeness (fires on some devices)
     public function onTap(clickEvent as WatchUi.ClickEvent) as Boolean {
         incrementCounter();
         return true;
