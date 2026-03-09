@@ -29,6 +29,7 @@ class MainView extends WatchUi.View {
 
         var count = GoalManager.getCount();
         var goal  = GoalManager.getGoal();
+        var total = GoalManager.getTotalCount();
 
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
@@ -36,6 +37,7 @@ class MainView extends WatchUi.View {
         drawProgressText(dc, count, goal, w);
         drawProgressBar(dc, count, goal, w);
         drawCounter(dc, count, w, h);
+        drawTotal(dc, total, w, h);
         drawButtonHints(dc, w, h);
     }
 
@@ -86,11 +88,21 @@ class MainView extends WatchUi.View {
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
+    // Total accumulated count at bottom centre
+    private function drawTotal(dc as Dc, total as Number,
+                                w as Number, h as Number) as Void {
+        if (total <= 0) { return; }
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h - 18, Graphics.FONT_SMALL,
+                    total.toString(),
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+    }
+
     // Button hints on left side (UP button area)
     private function drawButtonHints(dc as Dc, w as Number, h as Number) as Void {
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         // UP button is top-left — hint at left side ~y=80
-        dc.drawText(28, h / 4, Graphics.FONT_XTINY,
+        dc.drawText(8, h / 2, Graphics.FONT_XTINY,
                     "\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c",
                     Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
     }

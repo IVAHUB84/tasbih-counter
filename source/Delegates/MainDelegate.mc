@@ -1,3 +1,4 @@
+import Toybox.Application;
 import Toybox.Attention;
 import Toybox.Graphics;
 import Toybox.Lang;
@@ -47,14 +48,21 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
     }
 
     // ----------------------------------------------------------
-    // incrementCounter — adds 1, fires vibration on first goal hit
+    // incrementCounter — adds 1; auto-cycles when goal already met
     // ----------------------------------------------------------
     public function incrementCounter() as Void {
-        var count      = GoalManager.incrementCount();
-        var goal       = GoalManager.getGoal();
-        var wasAchieved = GoalManager.isGoalAchieved();
+        var goal = GoalManager.getGoal();
 
-        if (count >= goal && !wasAchieved) {
+        // If previous cycle was completed, start a new one
+        if (GoalManager.isGoalAchieved()) {
+            GoalManager.addToTotal(goal);
+            Application.Storage.setValue("currentCount", 0);
+            GoalManager.setGoalAchieved(false);
+        }
+
+        var count = GoalManager.incrementCount();
+
+        if (count >= goal) {
             GoalManager.setGoalAchieved(true);
             triggerGoalVibration();
             System.println("Goal reached: " + count.toString() + "/" + goal.toString());

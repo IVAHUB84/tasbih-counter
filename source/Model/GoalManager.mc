@@ -42,7 +42,22 @@ module GoalManager {
     public function resetCount() as Void {
         Application.Storage.setValue("currentCount", 0);
         Application.Storage.setValue("goalAchieved", false);
+        Application.Storage.setValue("totalCount", 0);
         System.println("GoalManager: counter reset");
+    }
+
+    // ---- Total (accumulated across cycles) ----------------------
+
+    public function getTotalCount() as Number {
+        var v = Application.Storage.getValue("totalCount");
+        if (v == null) { return 0; }
+        return v as Number;
+    }
+
+    public function addToTotal(n as Number) as Void {
+        var total = getTotalCount() + n;
+        Application.Storage.setValue("totalCount", total);
+        System.println("GoalManager: total → " + total.toString());
     }
 
     // ---- Goal ---------------------------------------------------

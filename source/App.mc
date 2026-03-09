@@ -44,6 +44,7 @@ class TasbihApp extends Application.AppBase {
             Application.Storage.setValue("currentCount",  0);
             Application.Storage.setValue("lastResetDate", today);
             Application.Storage.setValue("goalAchieved",  false);
+            Application.Storage.setValue("totalCount",    0);
             System.println("TasbihApp: daily auto-reset for " + today.toString());
         }
 
