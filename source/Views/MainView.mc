@@ -94,20 +94,21 @@ class MainView extends WatchUi.View {
     // Touch zones in MainDelegate use the same centre coords.
     // ─────────────────────────────────────────────────────────
     private function drawBottomIcons(dc as Dc, w as Number, h as Number) as Void {
-        var iconY = h - 25;
+        var iconY = h - 32;
         var bgR   = 15;
+        var cx    = w / 2 - 45;
+        var gx    = w / 2 + 45;
 
         // ── Shared background circles ──────────────────────────
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.fillCircle(30, iconY, bgR);
-        dc.fillCircle(w - 30, iconY, bgR);
+        dc.fillCircle(cx, iconY, bgR);
+        dc.fillCircle(gx, iconY, bgR);
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
 
         // ── Reset icon: circular arrow ─────────────────────────
         // Arc ~300°, gap at top-right; arrowhead closes the gap
         var arcR = 7;
-        var cx   = 30;
         // Arc from 70° to 330° counter-clockwise leaves gap at ~350–70° (top-right)
         dc.drawArc(cx, iconY, arcR, Graphics.ARC_COUNTER_CLOCKWISE, 70, 330);
 
@@ -123,7 +124,6 @@ class MainView extends WatchUi.View {
         // Centre hub + outer ring + 6 teeth (every 60°)
         // Pre-computed cos/sin * gearR for 0,60,120,180,240,300° (×10 → /10)
         // cos: 10, 5,-5,-10,-5, 5   sin: 0, 9, 9, 0,-9,-9  (×10, rounded)
-        var gx        = w - 30;
         var innerR    = 3;
         var outerR    = 8;
         var teethOutR = 11;

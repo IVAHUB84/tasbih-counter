@@ -44,19 +44,19 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
         var sw     = device.screenWidth  as Number;
         var sh     = device.screenHeight as Number;
 
-        var iconY  = sh - 25;
+        var iconY  = sh - 32;
         var hitR   = 22;    // enlarged touch zone
 
-        // Reset icon (lower-left, centre x=30)
-        var dxR = x - 30;
+        // Reset icon (lower-left of centre, x=sw/2-45)
+        var dxR = x - (sw / 2 - 45);
         var dyR = y - iconY;
         if ((dxR * dxR + dyR * dyR) <= (hitR * hitR)) {
             showResetDialog();
             return true;
         }
 
-        // Settings icon (lower-right, centre x=sw-30)
-        var dxS = x - (sw - 30);
+        // Settings icon (lower-right of centre, x=sw/2+45)
+        var dxS = x - (sw / 2 + 45);
         var dyS = y - iconY;
         if ((dxS * dxS + dyS * dyS) <= (hitR * hitR)) {
             openSettings();
