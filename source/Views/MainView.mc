@@ -98,7 +98,17 @@ class MainView extends WatchUi.View {
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // Button hint — "Hold: Reset" on right side
+    // Button hint — "Reset" opposite UP button (left side on Fenix)
+    (:fenixBehavior)
+    private function drawButtonHints(dc as Dc, w as Number, h as Number) as Void {
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(8, h / 2, Graphics.FONT_XTINY,
+                    "Reset",
+                    Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+    }
+
+    // Button hint — "Hold: Reset" on right side for Vivoactive 4
+    (:vivoactiveBehavior)
     private function drawButtonHints(dc as Dc, w as Number, h as Number) as Void {
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w - 8, h / 3, Graphics.FONT_XTINY,

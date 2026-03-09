@@ -24,12 +24,19 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
-    // Long hold → immediate reset
+    // Long hold → immediate reset (Vivoactive 4 only — no dedicated UP button)
+    (:vivoactiveBehavior)
     public function onHold(holdEvent as WatchUi.ClickEvent) as Boolean {
         GoalManager.resetCount();
         WatchUi.requestUpdate();
         System.println("Hold reset");
         return true;
+    }
+
+    // Long hold → ignored on Fenix/Epix (UP button handles reset)
+    (:fenixBehavior)
+    public function onHold(holdEvent as WatchUi.ClickEvent) as Boolean {
+        return false;
     }
 
     // UP → reset (Fenix with UP button)

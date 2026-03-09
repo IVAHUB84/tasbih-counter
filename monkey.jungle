@@ -1,1 +1,8 @@
 project.manifest = manifest.xml
+
+# Default (Fenix, Epix, MARQ, etc.): no hold-reset, UP button handles reset
+base.excludeAnnotations = vivoactiveBehavior
+
+# Vivoactive 4 / 4s: hold = immediate reset (no UP button for reset)
+vivoactive4.excludeAnnotations = fenixBehavior
+vivoactive4s.excludeAnnotations = fenixBehavior
