@@ -1,5 +1,7 @@
 import Toybox.Application;
 import Toybox.Lang;
+import Toybox.Position;
+import Toybox.Sensor;
 import Toybox.Time;
 import Toybox.System;
 import Toybox.WatchUi;
@@ -14,14 +16,26 @@ class TasbihApp extends Application.AppBase {
         AppBase.initialize();
     }
 
-    // Called when the app is launched (state is null on cold start)
+    // Called when the app is launched
     public function onStart(state as Dictionary?) as Void {
         checkDailyReset();
+
+        // GPS → bearing до Каабы
+        Position.enableLocationEvents(
+            Position.LOCATION_CONTINUOUS,
+            method(:onPosition)
+        );
+
+        // Компас → heading
+        Sensor.enableSensorEvents(method(:onSensor));
+
         System.println("TasbihApp: started");
     }
 
     // Called when the app is closing
     public function onStop(state as Dictionary?) as Void {
+        Position.enableLocationEvents(Position.LOCATION_DISABLE, null);
+        Sensor.enableSensorEvents(null);
         System.println("TasbihApp: stopped");
     }
 
@@ -30,6 +44,30 @@ class TasbihApp extends Application.AppBase {
         var view     = new $.MainView();
         var delegate = new $.MainDelegate(view);
         return [view, delegate];
+    }
+
+    // ---- GPS callback ---------------------------------------
+    // Обновляем координаты только при хорошем качестве сигнала
+
+    public function onPosition(info as Position.Info) as Void {
+        if (info.accuracy >= Position.QUALITY_GOOD) {
+            var coords = info.position.toRadians();
+            QiblaManager.updateLocation(coords[0] as Double, coords[1] as Double);
+        } else {
+            QiblaManager.clearLocation();
+        }
+        WatchUi.requestUpdate();
+    }
+
+    // ---- Sensor callback ------------------------------------
+    // Обновляем heading компаса
+
+    public function onSensor(sensorInfo as Sensor.Info) as Void {
+        var heading = sensorInfo.heading;
+        if (heading != null) {
+            QiblaManager.updateHeading(heading as Float);
+            WatchUi.requestUpdate();
+        }
     }
 
     // ----------------------------------------------------------

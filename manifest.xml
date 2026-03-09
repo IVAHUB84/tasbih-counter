@@ -59,7 +59,10 @@
             <iq:product id="vivoactive5"/>
             <iq:product id="vivoactive6"/>
         </iq:products>
-        <iq:permissions/>
+        <iq:permissions>
+            <iq:uses-permission id="Positioning"/>
+            <iq:uses-permission id="Sensor"/>
+        </iq:permissions>
         <iq:languages>
             <iq:language>ara</iq:language>
             <iq:language>eng</iq:language>

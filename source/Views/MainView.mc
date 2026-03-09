@@ -1,5 +1,6 @@
 import Toybox.Graphics;
 import Toybox.Lang;
+import Toybox.Math;
 import Toybox.WatchUi;
 
 // ============================================================
@@ -9,7 +10,9 @@ import Toybox.WatchUi;
 //   y=5        progress text  "current / goal"
 //   y=35       horizontal progress bar (8 px tall)
 //   y=½h       counter (FONT_NUMBER_HOT, full-centre)
-//   left~y=80  "Сбросить" hint opposite UP button
+//   bottom     total count
+//   edge       Qibla icon (moves along circle edge)
+//   left~y=½h  "Reset" hint opposite UP button
 // ============================================================
 class MainView extends WatchUi.View {
 
@@ -38,6 +41,7 @@ class MainView extends WatchUi.View {
         drawProgressBar(dc, count, goal, w);
         drawCounter(dc, count, w, h);
         drawTotal(dc, total, w, h);
+        drawQiblaIcon(dc, w, h);
         drawButtonHints(dc, w, h);
     }
 
@@ -96,6 +100,45 @@ class MainView extends WatchUi.View {
         dc.drawText(w / 2, h - 18, Graphics.FONT_SMALL,
                     total.toString(),
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+    }
+
+    // ----------------------------------------------------------
+    // Qibla icon — движется по краю циферблата
+    // Рисуем программно: чёрный прямоугольник с золотой рамкой
+    // ----------------------------------------------------------
+    private function drawQiblaIcon(dc as Dc, w as Number, h as Number) as Void {
+        var angle = QiblaManager.getScreenAngle();
+        if (angle == null) { return; }
+
+        // Радиус окружности (край экрана минус отступ)
+        var r = (w < h ? w : h) / 2 - 12;
+
+        // Центр экрана
+        var cx = w / 2;
+        var cy = h / 2;
+
+        // Угол в радианы (0=верх, по часовой стрелке)
+        var rad = (angle as Float) * Math.PI / 180.0;
+
+        // Позиция центра иконки
+        var ix = cx + (r * Math.sin(rad)).toNumber();
+        var iy = cy - (r * Math.cos(rad)).toNumber();
+
+        // Размер иконки
+        var iw = 14;
+        var ih = 10;
+
+        // Золотая рамка (COLOR_YELLOW)
+        dc.setColor(0xFFAA00, Graphics.COLOR_TRANSPARENT);
+        dc.fillRectangle(ix - iw / 2 - 1, iy - ih / 2 - 1, iw + 2, ih + 2);
+
+        // Чёрное тело Каабы
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
+        dc.fillRectangle(ix - iw / 2, iy - ih / 2, iw, ih);
+
+        // Белая полоса (пояс кисва)
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.fillRectangle(ix - iw / 2, iy - 1, iw, 2);
     }
 
     // Button hint — "Reset" opposite UP button (left side on Fenix)
