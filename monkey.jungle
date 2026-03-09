@@ -1,8 +1,17 @@
 project.manifest = manifest.xml
 
-# Default (Fenix, Epix, MARQ, etc.): no hold-reset, UP button handles reset
+# Default (Fenix, Epix, MARQ, FR, Instinct): UP button = reset, hint on LEFT
 base.excludeAnnotations = vivoactiveBehavior
 
-# Vivoactive 4 / 4s: hold = immediate reset (no UP button for reset)
+# Vivoactive 4 / 4s: hold = reset, hint "Hold: Reset" on RIGHT
 vivoactive4.excludeAnnotations = fenixBehavior
 vivoactive4s.excludeAnnotations = fenixBehavior
+
+# Venu 2/3 + Vivoactive 5/6: buttons on RIGHT — hint on RIGHT, hold also resets
+venu2.excludeAnnotations = fenixBehavior
+venu2s.excludeAnnotations = fenixBehavior
+venu2plus.excludeAnnotations = fenixBehavior
+venu3.excludeAnnotations = fenixBehavior
+venu3s.excludeAnnotations = fenixBehavior
+vivoactive5.excludeAnnotations = fenixBehavior
+vivoactive6.excludeAnnotations = fenixBehavior
