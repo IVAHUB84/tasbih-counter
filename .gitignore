@@ -1,0 +1,16 @@
+# Build output
+bin/
+
+# Developer signing keys (never commit private keys)
+*.der
+*.pem
+*.p12
+*.jks
+
+# VS Code / IDE
+.vscode/
+*.code-workspace
+
+# OS
+Thumbs.db
+.DS_Store

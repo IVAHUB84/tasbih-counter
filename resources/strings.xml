@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!-- ===================== English (default) ===================== -->
+    <string id="AppName">Tasbih Counter</string>
+    <string id="ProgressFormat">%d/%d</string>
+
+    <!-- Reset dialog -->
+    <string id="ResetDialogTitle">Reset counter?</string>
+    <string id="ResetDialogMessage">Are you sure?</string>
+    <string id="Yes">Yes</string>
+    <string id="No">No</string>
+
+    <!-- Settings menu -->
+    <string id="Settings">Settings</string>
+    <string id="SetGoal">Set daily goal</string>
+    <string id="Vibration">Vibration on goal</string>
+    <string id="VibrationOn">Vibration: On</string>
+    <string id="VibrationOff">Vibration: Off</string>
+    <string id="ResetNow">Reset now</string>
+
+    <!-- Goal picker -->
+    <string id="GoalPickerTitle">Daily Goal</string>
+    <string id="GoalPickerHint">UP+ DOWN- START=Save</string>
+    <string id="Save">Save</string>
+    <string id="Cancel">Cancel</string>
+
+    <!-- ===================== Russian (optional) ===================== -->
+    <string id="AppName_ru">Счетчик Тасбих</string>
+    <string id="SetGoal_ru">Дневная цель</string>
+    <string id="Vibration_ru">Вибрация</string>
+    <string id="ResetNow_ru">Сбросить</string>
+    <string id="Settings_ru">Настройки</string>
+
+    <!-- ===================== Arabic (optional) ===================== -->
+    <string id="AppName_ar">عداد التسبيح</string>
+    <string id="SetGoal_ar">الهدف اليومي</string>
+    <string id="ResetNow_ar">إعادة تعيين</string>
+</resources>
