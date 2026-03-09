@@ -103,7 +103,7 @@ class MainView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         // UP button is top-left — hint at left side ~y=80
         dc.drawText(8, h / 2, Graphics.FONT_XTINY,
-                    "\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c",
+                    "Reset",
                     Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 

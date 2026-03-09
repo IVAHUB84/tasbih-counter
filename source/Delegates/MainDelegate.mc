@@ -150,19 +150,19 @@ class ResetConfirmView extends WatchUi.View {
         // Question in the centre
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, h / 2, Graphics.FONT_MEDIUM,
-                    "\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c?",
+                    "Reset?",
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
-        // "Да" — opposite START button (top-right)
+        // "Yes" — opposite START button (top-right)
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w - 12, h / 3, Graphics.FONT_SMALL,
-                    "\u0414\u0430",
+                    "Yes",
                     Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER);
 
-        // "Отмена" — opposite BACK button (bottom-right)
+        // "Cancel" — opposite BACK button (bottom-right)
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w - 12, 2 * h / 3, Graphics.FONT_SMALL,
-                    "\u041e\u0442\u043c\u0435\u043d\u0430",
+                    "Cancel",
                     Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
