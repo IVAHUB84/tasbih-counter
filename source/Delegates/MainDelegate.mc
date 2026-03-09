@@ -18,9 +18,10 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
         BehaviorDelegate.initialize();
     }
 
-    // START / SELECT → reset dialog
+    // START / SELECT → immediate reset
     public function onSelect() as Boolean {
-        showResetDialog();
+        GoalManager.resetCount();
+        WatchUi.requestUpdate();
         return true;
     }
 
