@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <!-- Application launcher icon (40x40 px) -->
-    <bitmap id="ic_launcher" filename="drawables/ic_launcher.png"/>
+    <!-- Application launcher icon -->
+    <bitmap id="ic_launcher" filename="drawables/moon3.png"/>
 
     <!-- Reset icon shown in lower-left corner of main screen (20x20 px) -->
     <bitmap id="ic_reset" filename="drawables/ic_reset.png"/>
