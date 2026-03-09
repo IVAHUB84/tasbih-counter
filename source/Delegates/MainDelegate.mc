@@ -14,8 +14,11 @@ import Toybox.WatchUi;
 // ============================================================
 class MainDelegate extends WatchUi.BehaviorDelegate {
 
+    private var _view as MainView;
+
     public function initialize(view as MainView) {
         BehaviorDelegate.initialize();
+        _view = view;
     }
 
     // SELECT / tap screen → increment
@@ -45,9 +48,10 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
-    // DOWN → decrement
+    // DOWN → toggle Qibla arrow + info
     public function onNextPage() as Boolean {
-        decrementCounter();
+        _view.qiblaVisible = !_view.qiblaVisible;
+        WatchUi.requestUpdate();
         return true;
     }
 

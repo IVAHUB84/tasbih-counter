@@ -1,3 +1,4 @@
+import Toybox.Attention;
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Math;
@@ -8,6 +9,10 @@ import Toybox.WatchUi;
 // MainView — View layer for the main counter screen
 // ============================================================
 class MainView extends WatchUi.View {
+
+    var qiblaVisible       as Boolean = false;
+    private var _wasAligned    as Boolean = false;
+    private var _lastVibration as Number  = 0;    // timestamp в секундах
 
     public function initialize() {
         View.initialize();
@@ -34,8 +39,21 @@ class MainView extends WatchUi.View {
         drawProgressBar(dc, count, goal, w);
         drawCounter(dc, count, w, h);
         drawTotal(dc, total, w, h);
-        drawQiblaArrow(dc, w, h);
-        drawQiblaInfo(dc, w, h);
+        if (qiblaVisible) {
+            var aligned = QiblaManager.isAligned(_wasAligned);
+            if (aligned && !_wasAligned) {
+                var now = System.getTimer() / 1000;
+                if (now - _lastVibration >= 3) {
+                    vibrateAligned();
+                    _lastVibration = now;
+                }
+            }
+            _wasAligned = aligned;
+            drawQiblaArrow(dc, w, h, aligned);
+            drawQiblaInfo(dc, w, h);
+        } else {
+            _wasAligned = false;
+        }
         drawButtonHints(dc, w, h);
     }
 
@@ -99,18 +117,15 @@ class MainView extends WatchUi.View {
     // ----------------------------------------------------------
     // Qibla arrow — красная стрелка, или иконка мечети если лицом к Мекке
     // ----------------------------------------------------------
-    private function drawQiblaArrow(dc as Dc, w as Number, h as Number) as Void {
-        var angle = QiblaManager.getScreenAngle();
-        if (angle == null) { return; }
-
-        // ±20° — считаем что лицом к Мекке
-        var a = angle as Float;
-        var aligned = (a <= 20.0f || a >= 340.0f);
-
+    private function drawQiblaArrow(dc as Dc, w as Number, h as Number, aligned as Boolean) as Void {
         if (aligned) {
             drawMeccaIcon(dc, w, h);
             return;
         }
+
+        var angle = QiblaManager.getScreenAngle();
+        if (angle == null) { return; }
+        var a = angle as Float;
 
         var r   = (w < h ? w : h) / 2 - 10;
         var cx  = w / 2;
@@ -144,31 +159,57 @@ class MainView extends WatchUi.View {
         var cx = w / 2;
         var iy = h * 3 / 4;
 
-        // Левый минарет
         dc.setColor(0xFFAA00, Graphics.COLOR_TRANSPARENT);
-        dc.fillRectangle(cx - 26, iy - 18, 6, 26);
-        dc.fillRectangle(cx - 28, iy - 24, 10, 7);
 
-        // Правый минарет
-        dc.fillRectangle(cx + 20, iy - 18, 6, 26);
-        dc.fillRectangle(cx + 18, iy - 24, 10, 7);
-
-        // Тело + купол мечети (один полигон)
-        var pts = [
-            [cx - 18, iy + 8],
-            [cx - 18, iy - 8],
-            [cx - 14, iy - 20],
-            [cx,      iy - 30],
-            [cx + 14, iy - 20],
-            [cx + 18, iy - 8],
-            [cx + 18, iy + 8]
+        // Левый минарет: ствол + балкон + острый шпиль
+        dc.fillRectangle(cx - 32, iy - 18, 8, 26);
+        dc.fillRectangle(cx - 34, iy - 22, 12, 5);
+        var lCap = [
+            [cx - 28, iy - 34],
+            [cx - 34, iy - 22],
+            [cx - 22, iy - 22]
         ] as Array<[Number, Number]>;
-        dc.fillPolygon(pts);
+        dc.fillPolygon(lCap);
 
-        // Надпись
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, iy + 14, Graphics.FONT_SMALL, "Mecca",
-                    Graphics.TEXT_JUSTIFY_CENTER);
+        // Правый минарет: ствол + балкон + острый шпиль
+        dc.fillRectangle(cx + 24, iy - 18, 8, 26);
+        dc.fillRectangle(cx + 22, iy - 22, 12, 5);
+        var rCap = [
+            [cx + 28, iy - 34],
+            [cx + 22, iy - 22],
+            [cx + 34, iy - 22]
+        ] as Array<[Number, Number]>;
+        dc.fillPolygon(rCap);
+
+        // Основное тело
+        dc.fillRectangle(cx - 20, iy - 8, 40, 16);
+
+        // Купол — плавная парабола, 9 точек
+        var dome = [
+            [cx - 20, iy - 8],
+            [cx - 20, iy - 16],
+            [cx - 15, iy - 26],
+            [cx - 7,  iy - 34],
+            [cx,      iy - 38],
+            [cx + 7,  iy - 34],
+            [cx + 15, iy - 26],
+            [cx + 20, iy - 16],
+            [cx + 20, iy - 8]
+        ] as Array<[Number, Number]>;
+        dc.fillPolygon(dome);
+
+        // Арочная дверь — чёрная
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
+        var door = [
+            [cx - 6,  iy + 8],
+            [cx - 6,  iy - 1],
+            [cx - 4,  iy - 5],
+            [cx,      iy - 7],
+            [cx + 4,  iy - 5],
+            [cx + 6,  iy - 1],
+            [cx + 6,  iy + 8]
+        ] as Array<[Number, Number]>;
+        dc.fillPolygon(door);
     }
 
     // ----------------------------------------------------------
@@ -182,6 +223,16 @@ class MainView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, 50, Graphics.FONT_XTINY, text,
                     Graphics.TEXT_JUSTIFY_CENTER);
+    }
+
+    // Вибрация при совпадении направления с Меккой
+    private function vibrateAligned() as Void {
+        if (!(Attention has :vibrate)) { return; }
+        Attention.vibrate([
+            new Attention.VibeProfile(100, 200),
+            new Attention.VibeProfile(0,   100),
+            new Attention.VibeProfile(100, 200)
+        ]);
     }
 
     // Button hint — "Reset" opposite UP button (left side on Fenix)

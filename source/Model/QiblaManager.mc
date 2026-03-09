@@ -65,6 +65,19 @@ module QiblaManager {
         return angle;
     }
 
+    // ---- Проверка: лицом к Мекке — с гистерезисом -----------
+    // Вход: ±20°, выход: >±30° — предотвращает частые переключения
+
+    public function isAligned(wasAligned as Boolean) as Boolean {
+        var angle = getScreenAngle();
+        if (angle == null) { return false; }
+        var a = angle as Float;
+        if (wasAligned) {
+            return (a <= 30.0f || a >= 330.0f);  // выходим только при >30°
+        }
+        return (a <= 20.0f || a >= 340.0f);       // входим при ±20°
+    }
+
     // ---- Абсолютный bearing до Каабы (градусы) ---------------
 
     public function getBearingDegrees() as Float? {
