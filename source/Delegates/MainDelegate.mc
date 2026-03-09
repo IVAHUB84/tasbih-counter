@@ -1,4 +1,5 @@
 import Toybox.Attention;
+import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.WatchUi;
@@ -6,10 +7,9 @@ import Toybox.WatchUi;
 // ============================================================
 // MainDelegate — Controller layer for the main counter screen
 //
-// Buttons:  START → increment   DOWN → decrement   BACK → exit
-// Touch:    tap R icon → reset dialog
-//           tap S icon → settings
-//           tap anywhere else → increment
+// Buttons:  START → increment   UP → reset dialog
+//           DOWN  → decrement   BACK → exit
+// Touch:    tap anywhere → increment
 // ============================================================
 class MainDelegate extends WatchUi.BehaviorDelegate {
 
@@ -20,6 +20,12 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
     // START / SELECT → increment
     public function onSelect() as Boolean {
         incrementCounter();
+        return true;
+    }
+
+    // UP → reset dialog
+    public function onPreviousPage() as Boolean {
+        showResetDialog();
         return true;
     }
 
@@ -34,36 +40,8 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
         return false;
     }
 
-    // Touch tap — route by coordinates
+    // Touch tap → increment
     public function onTap(clickEvent as WatchUi.ClickEvent) as Boolean {
-        var coords = clickEvent.getCoordinates();
-        var x = coords[0] as Number;
-        var y = coords[1] as Number;
-
-        var device = System.getDeviceSettings();
-        var sw     = device.screenWidth  as Number;
-        var sh     = device.screenHeight as Number;
-
-        var iconY  = sh - 32;
-        var hitR   = 22;    // enlarged touch zone
-
-        // Reset icon (lower-left of centre, x=sw/2-45)
-        var dxR = x - (sw / 2 - 45);
-        var dyR = y - iconY;
-        if ((dxR * dxR + dyR * dyR) <= (hitR * hitR)) {
-            showResetDialog();
-            return true;
-        }
-
-        // Settings icon (lower-right of centre, x=sw/2+45)
-        var dxS = x - (sw / 2 + 45);
-        var dyS = y - iconY;
-        if ((dxS * dxS + dyS * dyS) <= (hitR * hitR)) {
-            openSettings();
-            return true;
-        }
-
-        // Main area → increment
         incrementCounter();
         return true;
     }
@@ -114,10 +92,10 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
         WatchUi.pushView(menu, new $.SettingsDelegate(), WatchUi.SLIDE_UP);
     }
 
-    // Show Yes/No reset confirmation dialog
+    // Show custom reset confirmation screen
     public function showResetDialog() as Void {
         WatchUi.pushView(
-            new WatchUi.Confirmation("Reset counter?"),
+            new $.ResetConfirmView(),
             new $.ResetConfirmDelegate(),
             WatchUi.SLIDE_IMMEDIATE
         );
@@ -140,20 +118,67 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
 }
 
 // ============================================================
-// ResetConfirmDelegate — handles the Yes/No confirmation
+// ResetConfirmView — custom "Сбросить?" screen
+//
+//   centre      — "Сбросить?"
+//   right ~y=h/3  — "Да"       opposite START button
+//   right ~y=2h/3 — "Отмена"   opposite BACK button
 // ============================================================
-class ResetConfirmDelegate extends WatchUi.ConfirmationDelegate {
+class ResetConfirmView extends WatchUi.View {
 
     public function initialize() {
-        ConfirmationDelegate.initialize();
+        View.initialize();
     }
 
-    public function onResponse(value as Confirm) as Boolean {
-        if (value == WatchUi.CONFIRM_YES) {
-            GoalManager.resetCount();
-            System.println("Counter reset confirmed");
-            WatchUi.requestUpdate();
-        }
+    public function onLayout(dc as Dc) as Void {}
+
+    public function onUpdate(dc as Dc) as Void {
+        var w = dc.getWidth();
+        var h = dc.getHeight();
+
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.clear();
+
+        // Question in the centre
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h / 2, Graphics.FONT_MEDIUM,
+                    "\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c?",
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+
+        // "Да" — opposite START button (top-right)
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w - 12, h / 3, Graphics.FONT_SMALL,
+                    "\u0414\u0430",
+                    Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER);
+
+        // "Отмена" — opposite BACK button (bottom-right)
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w - 12, 2 * h / 3, Graphics.FONT_SMALL,
+                    "\u041e\u0442\u043c\u0435\u043d\u0430",
+                    Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER);
+    }
+
+}
+
+// ============================================================
+// ResetConfirmDelegate — START = confirm, BACK = cancel
+// ============================================================
+class ResetConfirmDelegate extends WatchUi.BehaviorDelegate {
+
+    public function initialize() {
+        BehaviorDelegate.initialize();
+    }
+
+    public function onSelect() as Boolean {
+        GoalManager.resetCount();
+        System.println("Counter reset confirmed");
+        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+        WatchUi.requestUpdate();
+        return true;
+    }
+
+    public function onBack() as Boolean {
+        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
         return true;
     }
 
