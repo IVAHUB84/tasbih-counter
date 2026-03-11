@@ -275,12 +275,15 @@ class MainView extends WatchUi.View {
                     Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // Button hint — "Hold: Reset" on right side for Vivoactive 4
+    // Button hints for touchscreen devices (Venu/Vivoactive): left half = Reset, right half = Kaaba
     (:vivoactiveBehavior)
     private function drawButtonHints(dc as Dc, w as Number, h as Number) as Void {
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w - 8, h / 3, Graphics.FONT_XTINY,
-                    "Hold: Reset",
+        dc.drawText(8, h / 2, Graphics.FONT_XTINY,
+                    "Hold:\nReset",
+                    Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(w - 8, h / 2, Graphics.FONT_XTINY,
+                    "Hold:\nKaaba",
                     Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 

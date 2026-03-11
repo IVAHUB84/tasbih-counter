@@ -27,12 +27,19 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
-    // Long hold → immediate reset (Vivoactive 4 only — no dedicated UP button)
+    // Long hold: left half → Reset, right half → Toggle Kaaba
     (:vivoactiveBehavior)
     public function onHold(holdEvent as WatchUi.ClickEvent) as Boolean {
-        GoalManager.resetCount();
+        var coords = holdEvent.getCoordinates();
+        var screenW = System.getDeviceSettings().screenWidth;
+        if (coords[0] < screenW / 2) {
+            GoalManager.resetCount();
+            System.println("Hold reset");
+        } else {
+            _view.qiblaVisible = !_view.qiblaVisible;
+            System.println("Hold kaaba");
+        }
         WatchUi.requestUpdate();
-        System.println("Hold reset");
         return true;
     }
 
