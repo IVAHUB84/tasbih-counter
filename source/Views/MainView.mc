@@ -190,55 +190,58 @@ class MainView extends WatchUi.View {
         var cx = w / 2;
         var iy = h * 3 / 4;
 
+        // Scale down icon on small screens so it fits between counter and total
+        var s = (w < 300) ? 0.65f : 1.0f;
+
         dc.setColor(0xFFAA00, Graphics.COLOR_TRANSPARENT);
 
         // Левый минарет: ствол + балкон + острый шпиль
-        dc.fillRectangle(cx - 32, iy - 18, 8, 26);
-        dc.fillRectangle(cx - 34, iy - 22, 12, 5);
+        dc.fillRectangle(cx + (-32*s).toNumber(), iy + (-18*s).toNumber(), (8*s).toNumber(), (26*s).toNumber());
+        dc.fillRectangle(cx + (-34*s).toNumber(), iy + (-22*s).toNumber(), (12*s).toNumber(), (5*s).toNumber());
         var lCap = [
-            [cx - 28, iy - 34],
-            [cx - 34, iy - 22],
-            [cx - 22, iy - 22]
+            [cx + (-28*s).toNumber(), iy + (-34*s).toNumber()],
+            [cx + (-34*s).toNumber(), iy + (-22*s).toNumber()],
+            [cx + (-22*s).toNumber(), iy + (-22*s).toNumber()]
         ] as Array<[Number, Number]>;
         dc.fillPolygon(lCap);
 
         // Правый минарет: ствол + балкон + острый шпиль
-        dc.fillRectangle(cx + 24, iy - 18, 8, 26);
-        dc.fillRectangle(cx + 22, iy - 22, 12, 5);
+        dc.fillRectangle(cx + (24*s).toNumber(), iy + (-18*s).toNumber(), (8*s).toNumber(), (26*s).toNumber());
+        dc.fillRectangle(cx + (22*s).toNumber(), iy + (-22*s).toNumber(), (12*s).toNumber(), (5*s).toNumber());
         var rCap = [
-            [cx + 28, iy - 34],
-            [cx + 22, iy - 22],
-            [cx + 34, iy - 22]
+            [cx + (28*s).toNumber(),  iy + (-34*s).toNumber()],
+            [cx + (22*s).toNumber(),  iy + (-22*s).toNumber()],
+            [cx + (34*s).toNumber(),  iy + (-22*s).toNumber()]
         ] as Array<[Number, Number]>;
         dc.fillPolygon(rCap);
 
         // Основное тело
-        dc.fillRectangle(cx - 20, iy - 8, 40, 16);
+        dc.fillRectangle(cx + (-20*s).toNumber(), iy + (-8*s).toNumber(), (40*s).toNumber(), (16*s).toNumber());
 
         // Купол — плавная парабола, 9 точек
         var dome = [
-            [cx - 20, iy - 8],
-            [cx - 20, iy - 16],
-            [cx - 15, iy - 26],
-            [cx - 7,  iy - 34],
-            [cx,      iy - 38],
-            [cx + 7,  iy - 34],
-            [cx + 15, iy - 26],
-            [cx + 20, iy - 16],
-            [cx + 20, iy - 8]
+            [cx + (-20*s).toNumber(), iy + (-8*s).toNumber()],
+            [cx + (-20*s).toNumber(), iy + (-16*s).toNumber()],
+            [cx + (-15*s).toNumber(), iy + (-26*s).toNumber()],
+            [cx + (-7*s).toNumber(),  iy + (-34*s).toNumber()],
+            [cx,                      iy + (-38*s).toNumber()],
+            [cx + (7*s).toNumber(),   iy + (-34*s).toNumber()],
+            [cx + (15*s).toNumber(),  iy + (-26*s).toNumber()],
+            [cx + (20*s).toNumber(),  iy + (-16*s).toNumber()],
+            [cx + (20*s).toNumber(),  iy + (-8*s).toNumber()]
         ] as Array<[Number, Number]>;
         dc.fillPolygon(dome);
 
         // Арочная дверь — чёрная
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
         var door = [
-            [cx - 6,  iy + 8],
-            [cx - 6,  iy - 1],
-            [cx - 4,  iy - 5],
-            [cx,      iy - 7],
-            [cx + 4,  iy - 5],
-            [cx + 6,  iy - 1],
-            [cx + 6,  iy + 8]
+            [cx + (-6*s).toNumber(), iy + (8*s).toNumber()],
+            [cx + (-6*s).toNumber(), iy + (-1*s).toNumber()],
+            [cx + (-4*s).toNumber(), iy + (-5*s).toNumber()],
+            [cx,                     iy + (-7*s).toNumber()],
+            [cx + (4*s).toNumber(),  iy + (-5*s).toNumber()],
+            [cx + (6*s).toNumber(),  iy + (-1*s).toNumber()],
+            [cx + (6*s).toNumber(),  iy + (8*s).toNumber()]
         ] as Array<[Number, Number]>;
         dc.fillPolygon(door);
     }
