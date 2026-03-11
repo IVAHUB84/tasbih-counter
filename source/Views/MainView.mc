@@ -38,7 +38,12 @@ class MainView extends WatchUi.View {
 
         drawProgressText(dc, count, effectiveGoal, w, h);
         drawProgressBar(dc, count, effectiveGoal, w, h);
-        drawPhraseLabel(dc, total, w, h);
+        // Qibla info replaces phrase label when Qibla is active — same slot, no overlap
+        if (qiblaVisible) {
+            drawQiblaInfo(dc, w, h);
+        } else {
+            drawPhraseLabel(dc, total, w, h);
+        }
         drawCounter(dc, count, w, h);
         drawTotal(dc, total + count, w, h);
         if (qiblaVisible) {
@@ -52,7 +57,6 @@ class MainView extends WatchUi.View {
             }
             _wasAligned = aligned;
             drawQiblaArrow(dc, w, h, aligned);
-            drawQiblaInfo(dc, w, h);
         } else {
             _wasAligned = false;
         }
@@ -240,7 +244,7 @@ class MainView extends WatchUi.View {
     }
 
     // ----------------------------------------------------------
-    // Qibla info — "Kaaba 195° (SW)" по центру на y=50
+    // Qibla info — "Kaaba 195° (SW)" — same slot as phrase label (h/4), no overlap
     // ----------------------------------------------------------
     private function drawQiblaInfo(dc as Dc, w as Number, h as Number) as Void {
         var b = QiblaManager.getBearingDegrees();
@@ -248,7 +252,7 @@ class MainView extends WatchUi.View {
         var label = QiblaManager.getBearingLabel();
         var text  = "Kaaba " + (b as Float).format("%.0f") + "\u00B0 (" + label + ")";
         dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, 50, Graphics.FONT_XTINY, text,
+        dc.drawText(w / 2, h / 4, Graphics.FONT_XTINY, text,
                     Graphics.TEXT_JUSTIFY_CENTER);
     }
 
