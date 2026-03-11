@@ -68,23 +68,42 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
 
     // ----------------------------------------------------------
     // incrementCounter — adds 1; auto-cycles when goal already met
+    // Cycle 0 (total 0-32):  Subhan Allah    goal = user goal (default 33)
+    // Cycle 1 (total 33-65): Alhamdulillah   goal = user goal
+    // Cycle 2 (total 66-98): Allahu Akbar    goal = user goal
+    // Cycle 3 (total 99):    La ilaha illallah goal = 1
+    // Grand total ≥ 100 → auto reset
     // ----------------------------------------------------------
     public function incrementCounter() as Void {
-        var goal = GoalManager.getGoal();
+        // 101st tap — session complete flag was set on 100th tap → auto reset
+        if (GoalManager.isGoalAchieved() && GoalManager.getTotalCount() >= 99) {
+            GoalManager.resetCount();
+            WatchUi.requestUpdate();
+            return;
+        }
 
-        // If previous cycle was completed, start a new one
+        // Normal cycle transition
         if (GoalManager.isGoalAchieved()) {
-            GoalManager.addToTotal(goal);
+            GoalManager.addToTotal(GoalManager.getGoal());
             Application.Storage.setValue("currentCount", 0);
             GoalManager.setGoalAchieved(false);
         }
 
+        var total = GoalManager.getTotalCount();
+        var goal  = (total >= 99) ? 1 : GoalManager.getGoal();
         var count = GoalManager.incrementCount();
+
+        if (total + count >= 100) {
+            // 100th tap — show La ilaha illallah, reset on next tap
+            GoalManager.setGoalAchieved(true);
+            triggerGoalVibration();
+            WatchUi.requestUpdate();
+            return;
+        }
 
         if (count >= goal) {
             GoalManager.setGoalAchieved(true);
             triggerGoalVibration();
-            System.println("Goal reached: " + count.toString() + "/" + goal.toString());
         }
         WatchUi.requestUpdate();
     }
@@ -128,18 +147,12 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
         );
     }
 
-    // Three strong vibration pulses when goal is first reached
+    // Single vibration pulse when cycle is complete
     private function triggerGoalVibration() as Void {
         if (!GoalManager.isVibrationEnabled()) { return; }
         if (!(Attention has :vibrate))          { return; }
 
-        Attention.vibrate([
-            new Attention.VibeProfile(100, 200),
-            new Attention.VibeProfile(0,   150),
-            new Attention.VibeProfile(100, 200),
-            new Attention.VibeProfile(0,   150),
-            new Attention.VibeProfile(100, 200)
-        ]);
+        Attention.vibrate([new Attention.VibeProfile(100, 300)]);
     }
 
 }

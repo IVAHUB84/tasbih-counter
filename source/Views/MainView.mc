@@ -31,14 +31,16 @@ class MainView extends WatchUi.View {
         var count = GoalManager.getCount();
         var goal  = GoalManager.getGoal();
         var total = GoalManager.getTotalCount();
+        var effectiveGoal = (total >= 99) ? 1 : goal;
 
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
 
-        drawProgressText(dc, count, goal, w);
-        drawProgressBar(dc, count, goal, w);
+        drawProgressText(dc, count, effectiveGoal, w, h);
+        drawProgressBar(dc, count, effectiveGoal, w, h);
+        drawPhraseLabel(dc, total, w, h);
         drawCounter(dc, count, w, h);
-        drawTotal(dc, total, w, h);
+        drawTotal(dc, total + count, w, h);
         if (qiblaVisible) {
             var aligned = QiblaManager.isAligned(_wasAligned);
             if (aligned && !_wasAligned) {
@@ -61,19 +63,19 @@ class MainView extends WatchUi.View {
 
     // "33/100" above the bar
     private function drawProgressText(dc as Dc, count as Number,
-                                       goal as Number, w as Number) as Void {
+                                       goal as Number, w as Number, h as Number) as Void {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, 5, Graphics.FONT_SMALL,
+        dc.drawText(w / 2, h / 22, Graphics.FONT_SMALL,
                     count.toString() + "/" + goal.toString(),
                     Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // Horizontal progress bar
     private function drawProgressBar(dc as Dc, count as Number,
-                                      goal as Number, w as Number) as Void {
+                                      goal as Number, w as Number, h as Number) as Void {
         var barX    = 20;
-        var barY    = 35;
-        var barH    = 8;
+        var barY    = h / 6;
+        var barH    = 12;
         var barMaxW = w - 40;
 
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
@@ -87,12 +89,29 @@ class MainView extends WatchUi.View {
         if (barW < 0)       { barW = 0; }
 
         if (barW > 0) {
+            // Islamic green in progress; bright green when cycle complete
             dc.setColor(
-                count >= goal ? Graphics.COLOR_GREEN : Graphics.COLOR_DK_BLUE,
+                count >= goal ? Graphics.COLOR_GREEN : 0x00A550,
                 Graphics.COLOR_TRANSPARENT
             );
             dc.fillRectangle(barX, barY, barW, barH);
         }
+    }
+
+    // Phrase label — based on cycle (hardcoded 33-count cycles per Islamic tradition)
+    // Cycle 0 (total 0-32):  Subhan Allah
+    // Cycle 1 (total 33-65): Alhamdulillah
+    // Cycle 2 (total 66-98): Allahu Akbar
+    // Cycle 3 (total 99):    La ilaha illallah
+    private function drawPhraseLabel(dc as Dc, total as Number,
+                                      w as Number, h as Number) as Void {
+        var phrases = ["Subhan Allah", "Alhamdulillah", "Allahu Akbar", "La ilaha illallah"] as Array<String>;
+        var idx = total / 33;
+        if (idx < 0 || idx >= phrases.size()) { return; }
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h / 4, Graphics.FONT_MEDIUM,
+                    phrases[idx],
+                    Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // Giant counter — сдвинут чуть выше центра чтобы освободить место для total
@@ -104,14 +123,22 @@ class MainView extends WatchUi.View {
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    // Total accumulated count at bottom centre — крупнее
+    // Total accumulated count at bottom centre
+    // At 100: green + FONT_LARGE (session complete)
     private function drawTotal(dc as Dc, total as Number,
                                 w as Number, h as Number) as Void {
         if (total <= 0) { return; }
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h - 24, Graphics.FONT_MEDIUM,
-                    total.toString(),
-                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        if (total >= 100) {
+            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h - 24, Graphics.FONT_LARGE,
+                        total.toString(),
+                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        } else {
+            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h - 24, Graphics.FONT_MEDIUM,
+                        total.toString(),
+                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
     }
 
     // ----------------------------------------------------------
